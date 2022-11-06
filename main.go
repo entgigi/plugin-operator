@@ -93,17 +93,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.EntandoPluginV2Reconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+	if err = controllers.NewEntandoPluginV2Reconciler(mgr.GetClient(), ctrl.Log, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "EntandoPluginV2")
 		os.Exit(1)
 	}
-	if err = (&controllers.EntandoIngressV2Reconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+	if err = controllers.NewEntandoIngressV2Reconciler(mgr.GetClient(), ctrl.Log, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "EntandoIngressV2")
 		os.Exit(1)
 	}

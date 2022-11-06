@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -25,11 +26,10 @@ import (
 
 // EntandoPluginV2Spec defines the desired state of EntandoPluginV2
 type EntandoPluginV2Spec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of EntandoPluginV2. Edit entandopluginv2_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	EnvironmentVariables []corev1.EnvVar `json:"EnvironmentVariables,omitempty"`
+	HealthCheckPath      string          `json:"HealthCheckPath,omitempty"`
+	IngressPath          string          `json:"IngressPath,omitempty"`
+	Image                string          `json:"image,omitempty"`
 }
 
 // EntandoPluginV2Status defines the observed state of EntandoPluginV2

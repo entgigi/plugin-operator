@@ -22,14 +22,21 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	pluginv1alpha1 "github.com/entgigi/plugin-operator.git/api/v1alpha1"
+	v1alpha1 "github.com/entgigi/plugin-operator.git/api/v1alpha1"
+	"github.com/entgigi/plugin-operator.git/common"
+	"github.com/go-logr/logr"
+)
+
+const (
+	controllerIngressLogName = "EntandoINgressV2 Controller"
 )
 
 // EntandoIngressV2Reconciler reconciles a EntandoIngressV2 object
 type EntandoIngressV2Reconciler struct {
-	client.Client
+	Base   common.BaseK8sStructure
 	Scheme *runtime.Scheme
 }
 
@@ -37,26 +44,87 @@ type EntandoIngressV2Reconciler struct {
 //+kubebuilder:rbac:groups=plugin.entando.org,resources=entandoingressv2s/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=plugin.entando.org,resources=entandoingressv2s/finalizers,verbs=update
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the EntandoIngressV2 object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
+func NewEntandoIngressV2Reconciler(client client.Client, log logr.Logger, scheme *runtime.Scheme) *EntandoIngressV2Reconciler {
+	return &EntandoIngressV2Reconciler{
+		Base:   common.BaseK8sStructure{Client: client, Log: log},
+		Scheme: scheme,
+	}
+}
+
 func (r *EntandoIngressV2Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	//_ = log.FromContext(ctx)
+	log := r.Base.Log.WithName(controllerIngressLogName)
+	log.Info("Start reconciling EntandoIngressV2 custom resources")
 
-	// TODO(user): your logic here
+	cr := &v1alpha1.EntandoIngressV2{}
+	err := r.Base.Get(ctx, req.NamespacedName, cr)
+	if err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
 
+	// Check if the EntandoApp instance is marked to be deleted, which is
+	// indicated by the deletion timestamp being set.
+	isEntandoIngressV2MarkedToBeDeleted := cr.GetDeletionTimestamp() != nil
+	if isEntandoIngressV2MarkedToBeDeleted {
+		if err := r.removeFinalizer(ctx, cr, log); err != nil {
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{}, nil
+	}
+
+	// Add finalizer for this CR
+	err = r.addFinalizer(ctx, cr)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	log.Info("Reconciled EntandoIngressV2 custom resources")
 	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *EntandoIngressV2Reconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&pluginv1alpha1.EntandoIngressV2{}).
+		For(&v1alpha1.EntandoIngressV2{}).
+		WithEventFilter(predicate.GenerationChangedPredicate{}). //solo modifiche a spec
 		Complete(r)
+}
+
+// =====================================================================
+// Add the cleanup steps that the operator
+// needs to do before the CR can be deleted. Examples
+// of finalizers include performing backups and deleting
+// resources that are not owned by this CR, like a PVC.
+// =====================================================================
+func (r *EntandoIngressV2Reconciler) finalizeEntandoApp(log logr.Logger, m *v1alpha1.EntandoIngressV2) error {
+	log.Info("Successfully finalized entandoApp")
+	return nil
+}
+
+func (r *EntandoIngressV2Reconciler) addFinalizer(ctx context.Context, cr *v1alpha1.EntandoIngressV2) error {
+	if !controllerutil.ContainsFinalizer(cr, entandoPluginFinalizer) {
+		controllerutil.AddFinalizer(cr, entandoPluginFinalizer)
+		return r.Base.Update(ctx, cr)
+	}
+	return nil
+}
+
+func (r *EntandoIngressV2Reconciler) removeFinalizer(ctx context.Context, cr *v1alpha1.EntandoIngressV2, log logr.Logger) error {
+	if controllerutil.ContainsFinalizer(cr, entandoPluginFinalizer) {
+		// Run finalization logic for entandoAppFinalizer. If the
+		// finalization logic fails, don't remove the finalizer so
+		// that we can retry during the next reconciliation.
+		if err := r.finalizeEntandoApp(log, cr); err != nil {
+			return err
+		}
+
+		// Remove entandoAppFinalizer. Once all finalizers have been
+		// removed, the object will be deleted.
+		controllerutil.RemoveFinalizer(cr, entandoPluginFinalizer)
+		err := r.Base.Update(ctx, cr)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
