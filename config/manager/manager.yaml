@@ -60,18 +60,13 @@ spec:
         env:
           - name: ENTANDO_K8S_OPERATOR_DEPLOYMENT_TYPE
             # OLM
-            value: "Olm"
+            value: "OLM"
             # non OLM
             #value: "Standard"
           - name: WATCH_NAMESPACE
             valueFrom:
               fieldRef:
-                # OLM
-                #fieldPath: metadata.annotations['olm.targetNamespaces']
-                # non OLM
                 fieldPath: metadata.namespace
-        # TODO(user): Configure the resources accordingly based on the project requirements.
-        # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
         resources:
           limits:
             cpu: 500m
