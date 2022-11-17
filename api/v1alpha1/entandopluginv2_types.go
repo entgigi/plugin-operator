@@ -26,6 +26,8 @@ import (
 
 // EntandoPluginV2Spec defines the desired state of EntandoPluginV2
 type EntandoPluginV2Spec struct {
+	// +kubebuilder:default:="none"
+	Database             string          `json:"database,omitempty"`
 	EnvironmentVariables []corev1.EnvVar `json:"EnvironmentVariables,omitempty"`
 	HealthCheckPath      string          `json:"HealthCheckPath,omitempty"`
 	IngressPath          string          `json:"IngressPath,omitempty"`
@@ -34,14 +36,18 @@ type EntandoPluginV2Spec struct {
 
 // EntandoPluginV2Status defines the observed state of EntandoPluginV2
 type EntandoPluginV2Status struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// +patchMergeKey=type
+	// +patchStrategy=merge
+	// +listType=map
+	// +listMapKey=type
+	Conditions []metav1.Condition `json:"conditions"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
 // EntandoPluginV2 is the Schema for the entandopluginv2s API
+//+kubebuilder:printcolumn:name="Ready",type="string",JSONPath=`.status.conditions[?(@.type=="Ready")].status`,description="state of Plugin"
 type EntandoPluginV2 struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

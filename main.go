@@ -93,7 +93,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = controllers.NewEntandoPluginV2Reconciler(mgr.GetClient(), ctrl.Log, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+	if err = controllers.NewEntandoPluginV2Reconciler(mgr.GetClient(), ctrl.Log, mgr.GetScheme(), mgr.GetEventRecorderFor("entandoplugin-controller")).
+		SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "EntandoPluginV2")
 		os.Exit(1)
 	}

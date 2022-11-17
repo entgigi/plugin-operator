@@ -19,16 +19,17 @@ package controllers
 import (
 	"context"
 
+	"github.com/entgigi/plugin-operator.git/api/v1alpha1"
+	pluginv1alpha1 "github.com/entgigi/plugin-operator.git/api/v1alpha1"
+	"github.com/entgigi/plugin-operator.git/common"
+	"github.com/entgigi/plugin-operator.git/controllers/reconcilers"
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
-
-	"github.com/entgigi/plugin-operator.git/api/v1alpha1"
-	pluginv1alpha1 "github.com/entgigi/plugin-operator.git/api/v1alpha1"
-	"github.com/entgigi/plugin-operator.git/common"
-	"github.com/go-logr/logr"
 )
 
 const (
@@ -38,18 +39,22 @@ const (
 
 // EntandoPluginV2Reconciler reconciles a EntandoPluginV2 object
 type EntandoPluginV2Reconciler struct {
-	Base   common.BaseK8sStructure
-	Scheme *runtime.Scheme
+	Base     common.BaseK8sStructure
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
 //+kubebuilder:rbac:groups=plugin.entando.org,resources=entandopluginv2s,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=plugin.entando.org,resources=entandopluginv2s/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=plugin.entando.org,resources=entandopluginv2s/finalizers,verbs=update
+// Annotation for generating RBAC role for writing Events
+//+kubebuilder:rbac:groups="*",resources=events,verbs=create;patch
 
-func NewEntandoPluginV2Reconciler(client client.Client, log logr.Logger, scheme *runtime.Scheme) *EntandoPluginV2Reconciler {
+func NewEntandoPluginV2Reconciler(client client.Client, log logr.Logger, scheme *runtime.Scheme, recorder record.EventRecorder) *EntandoPluginV2Reconciler {
 	return &EntandoPluginV2Reconciler{
-		Base:   common.BaseK8sStructure{Client: client, Log: log},
-		Scheme: scheme,
+		Base:     common.BaseK8sStructure{Client: client, Log: log},
+		Scheme:   scheme,
+		Recorder: recorder,
 	}
 }
 
@@ -80,8 +85,11 @@ func (r *EntandoPluginV2Reconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, err
 	}
 
+	recoManager := reconcilers.NewReconcileManager(r.Base.Client, r.Base.Log, r.Recorder)
+	res, err := recoManager.MainReconcile(ctx, req, cr)
+
 	log.Info("Reconciled EntandoPluginV2 custom resources")
-	return ctrl.Result{}, nil
+	return res, err
 }
 
 // SetupWithManager sets up the controller with the Manager.
