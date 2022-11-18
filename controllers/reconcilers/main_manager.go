@@ -7,6 +7,7 @@ import (
 
 	"github.com/entgigi/plugin-operator.git/api/v1alpha1"
 	"github.com/entgigi/plugin-operator.git/common"
+	"github.com/entgigi/plugin-operator.git/controllers/services"
 	"github.com/go-logr/logr"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -14,29 +15,28 @@ import (
 )
 
 type ReconcileManager struct {
-	Base     common.BaseK8sStructure
-	Recorder record.EventRecorder
+	Base      *common.BaseK8sStructure
+	Recorder  record.EventRecorder
+	Condition *services.ConditionService
 }
 
 func NewReconcileManager(client client.Client, log logr.Logger, recorder record.EventRecorder) *ReconcileManager {
+	base := &common.BaseK8sStructure{Client: client, Log: log}
 	return &ReconcileManager{
-		Base:     common.BaseK8sStructure{Client: client, Log: log},
-		Recorder: recorder,
+		Base:      base,
+		Recorder:  recorder,
+		Condition: services.NewConditionService(base),
 	}
 }
 
 func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request, cr *v1alpha1.EntandoPluginV2) (ctrl.Result, error) {
 	log := r.Base.Log
-	deployManager := NewDeployManager()
+	deployManager := NewDeployManager(r.Base, r.Condition)
 	// deploy done
-	applied, err := deployManager.IsDeployApplied()
-	if err != nil {
-		log.Info("error IsDeployApplied reschedule reconcile", "error", err)
-		return ctrl.Result{}, err
-	}
+	applied := deployManager.IsDeployApplied(ctx, cr)
 
 	if !applied {
-		if err := deployManager.ApplyDeploy(); err != nil {
+		if err := deployManager.ApplyDeploy(ctx, cr); err != nil {
 			log.Info("error ApplyDeploy reschedule reconcile", "error", err)
 			return ctrl.Result{}, err
 		}
@@ -44,14 +44,11 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request, 
 	r.Recorder.Eventf(cr, "Normal", "Updated", fmt.Sprintf("Updated deployment %s/%s", req.Namespace, req.Name))
 
 	// deploy ready
-	ready, err := deployManager.IsDeployReady()
-	if err != nil {
-		log.Info("error IsDeployReady reschedule reconcile", "error", err)
-		return ctrl.Result{}, err
-	}
+	var err error
+	ready := deployManager.IsDeployReady(ctx, cr)
 
 	if !ready {
-		if ready, err = deployManager.CheckDeploy(); err != nil {
+		if ready, err = deployManager.CheckDeploy(ctx, cr); err != nil {
 			log.Info("error ApplyDeploy reschedule reconcile", "error", err)
 			return ctrl.Result{}, err
 		}

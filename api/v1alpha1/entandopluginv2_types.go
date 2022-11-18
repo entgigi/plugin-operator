@@ -65,6 +65,14 @@ type EntandoPluginV2List struct {
 	Items           []EntandoPluginV2 `json:"items"`
 }
 
+func (p *EntandoPluginV2) GetConditions() []metav1.Condition {
+	return p.Status.Conditions
+}
+
+func (p *EntandoPluginV2) SetConditions(conditions []metav1.Condition) {
+	p.Status.Conditions = conditions
+}
+
 func init() {
 	SchemeBuilder.Register(&EntandoPluginV2{}, &EntandoPluginV2List{})
 }
