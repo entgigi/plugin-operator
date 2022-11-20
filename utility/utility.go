@@ -29,3 +29,10 @@ func GetOperatorDeploymentType() string {
 		return common.OperatorTypeStandard
 	}
 }
+
+func TruncateString(s string, max int) string {
+	if max > len(s) {
+		return s
+	}
+	return s[:max]
+}

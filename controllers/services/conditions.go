@@ -18,6 +18,10 @@ const (
 	CONDITION_DEPLOY_READY        = "DeployReady"
 	CONDITION_DEPLOY_READY_REASON = "DeployIsReady"
 	CONDITION_DEPLOY_READY_MSG    = "Your deploy is ready"
+
+	CONDITION_PLUGIN_READY        = "Ready"
+	CONDITION_PLUGIN_READY_REASON = "PluginIsReady"
+	CONDITION_PLUGIN_READY_MSG    = "Your plugin is ready"
 )
 
 type ConditionService struct {
@@ -56,6 +60,29 @@ func (cs *ConditionService) getConditionStatus(ctx context.Context, cr *v1alpha1
 		}
 	}
 	return output, observedGeneration
+}
+
+func (cs *ConditionService) SetConditionPluginReadyTrue(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
+	return cs.setConditionPluginReady(ctx, cr, metav1.ConditionTrue)
+}
+
+func (cs *ConditionService) SetConditionPluginReadyUnknow(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
+	return cs.setConditionPluginReady(ctx, cr, metav1.ConditionUnknown)
+}
+
+func (cs *ConditionService) SetConditionPluginReadyFalse(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
+	return cs.setConditionPluginReady(ctx, cr, metav1.ConditionFalse)
+}
+
+func (cs *ConditionService) setConditionPluginReady(ctx context.Context, cr *v1alpha1.EntandoPluginV2, status metav1.ConditionStatus) error {
+
+	cs.deleteCondition(ctx, cr, CONDITION_PLUGIN_READY)
+	return utility.AppendCondition(ctx, cs.Base.Client, cr,
+		CONDITION_PLUGIN_READY,
+		status,
+		CONDITION_PLUGIN_READY_REASON,
+		CONDITION_PLUGIN_READY_MSG,
+		cr.Generation)
 }
 
 func (cs *ConditionService) SetConditionDeployReady(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {

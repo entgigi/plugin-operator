@@ -32,6 +32,10 @@ type EntandoPluginV2Spec struct {
 	HealthCheckPath      string          `json:"HealthCheckPath,omitempty"`
 	IngressPath          string          `json:"IngressPath,omitempty"`
 	Image                string          `json:"image,omitempty"`
+	// +kubebuilder:default:=1
+	Replicas int32 `json:"replicas,omitempty"`
+	// +kubebuilder:default:=8080
+	Port int32 `json:"port,omitempty"`
 }
 
 // EntandoPluginV2Status defines the observed state of EntandoPluginV2

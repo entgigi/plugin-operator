@@ -49,6 +49,7 @@ type EntandoPluginV2Reconciler struct {
 //+kubebuilder:rbac:groups=plugin.entando.org,resources=entandopluginv2s/finalizers,verbs=update
 // Annotation for generating RBAC role for writing Events
 //+kubebuilder:rbac:groups="*",resources=events,verbs=create;patch
+//+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 
 func NewEntandoPluginV2Reconciler(client client.Client, log logr.Logger, scheme *runtime.Scheme, recorder record.EventRecorder) *EntandoPluginV2Reconciler {
 	return &EntandoPluginV2Reconciler{
@@ -85,7 +86,7 @@ func (r *EntandoPluginV2Reconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, err
 	}
 
-	recoManager := reconcilers.NewReconcileManager(r.Base.Client, r.Base.Log, r.Recorder)
+	recoManager := reconcilers.NewReconcileManager(r.Base.Client, r.Base.Log, r.Scheme, r.Recorder)
 	res, err := recoManager.MainReconcile(ctx, req, cr)
 
 	log.Info("Reconciled EntandoPluginV2 custom resources")
@@ -96,6 +97,7 @@ func (r *EntandoPluginV2Reconciler) Reconcile(ctx context.Context, req ctrl.Requ
 func (r *EntandoPluginV2Reconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&pluginv1alpha1.EntandoPluginV2{}).
+		//Owns(&appsv1.Deployment{}).
 		WithEventFilter(predicate.GenerationChangedPredicate{}). //solo modifiche a spec
 		Complete(r)
 }
