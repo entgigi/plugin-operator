@@ -19,9 +19,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-const labelKey = "app"
-
-func (d *DeployManager) isUpgrade(ctx context.Context, cr *v1alpha1.EntandoPluginV2, deployment *appsv1.Deployment) (error, bool) {
+func (d *DeployManager) isDeploymentUpgrade(ctx context.Context, cr *v1alpha1.EntandoPluginV2, deployment *appsv1.Deployment) (error, bool) {
 	err := d.Base.Client.Get(ctx, types.NamespacedName{Name: makeDeploymentName(cr), Namespace: cr.GetNamespace()}, deployment)
 	if errors.IsNotFound(err) {
 		return nil, false
@@ -32,7 +30,8 @@ func (d *DeployManager) isUpgrade(ctx context.Context, cr *v1alpha1.EntandoPlugi
 func (d *DeployManager) buildDeployment(cr *v1alpha1.EntandoPluginV2, scheme *runtime.Scheme) *appsv1.Deployment {
 	replicas := cr.Spec.Replicas
 	deploymentName := makeDeploymentName(cr)
-	labels := map[string]string{labelKey: deploymentName}
+	containerName := makeContainerName(cr)
+	labels := map[string]string{labelKey: containerName}
 	port := int32(cr.Spec.Port)
 
 	deployment := &appsv1.Deployment{
@@ -60,7 +59,7 @@ func (d *DeployManager) buildDeployment(cr *v1alpha1.EntandoPluginV2, scheme *ru
 					Containers: []corev1.Container{{
 						Image:           cr.Spec.Image,
 						ImagePullPolicy: corev1.PullIfNotPresent,
-						Name:            "mycontainer",
+						Name:            containerName,
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: port,
 						}},
@@ -101,4 +100,28 @@ func (d *DeployManager) buildDeployment(cr *v1alpha1.EntandoPluginV2, scheme *ru
 
 func makeDeploymentName(cr *v1alpha1.EntandoPluginV2) string {
 	return "plugin-" + utility.TruncateString(cr.GetName(), 200) + "-deployment"
+}
+
+func (d *DeployManager) ApplyDeployment(ctx context.Context, cr *v1alpha1.EntandoPluginV2, scheme *runtime.Scheme) error {
+	baseDeployment := d.buildDeployment(cr, scheme)
+	deployment := &appsv1.Deployment{}
+
+	err, isUpgrade := d.isDeploymentUpgrade(ctx, cr, deployment)
+	if err != nil {
+		return err
+	}
+
+	var applyError error
+	if isUpgrade {
+		deployment.Spec = baseDeployment.Spec
+		applyError = d.Base.Client.Update(ctx, deployment)
+
+	} else {
+		applyError = d.Base.Client.Create(ctx, baseDeployment)
+	}
+
+	if applyError != nil {
+		return applyError
+	}
+	return nil
 }
