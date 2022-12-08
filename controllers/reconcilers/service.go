@@ -17,7 +17,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (d *DeployManager) isServiceUpgrade(ctx context.Context, cr *v1alpha1.EntandoPluginV2, service *corev1.Service) (error, bool) {
+func (d *ServiceManager) isServiceUpgrade(ctx context.Context, cr *v1alpha1.EntandoPluginV2, service *corev1.Service) (error, bool) {
 	err := d.Base.Client.Get(ctx, types.NamespacedName{Name: makeServiceName(cr), Namespace: cr.GetNamespace()}, service)
 	if errors.IsNotFound(err) {
 		return nil, false
@@ -25,7 +25,7 @@ func (d *DeployManager) isServiceUpgrade(ctx context.Context, cr *v1alpha1.Entan
 	return err, true
 }
 
-func (d *DeployManager) buildService(cr *v1alpha1.EntandoPluginV2, scheme *runtime.Scheme) *corev1.Service {
+func (d *ServiceManager) buildService(cr *v1alpha1.EntandoPluginV2, scheme *runtime.Scheme) *corev1.Service {
 	serviceName := makeServiceName(cr)
 	labels := map[string]string{labelKey: makeContainerName(cr)}
 	port := int32(cr.Spec.Port)
@@ -42,10 +42,10 @@ func (d *DeployManager) buildService(cr *v1alpha1.EntandoPluginV2, scheme *runti
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeClusterIP,
 			Ports: []corev1.ServicePort{{
-				Name:       "server-port",
+				Name:       serviceName + "-port",
 				Port:       port,
 				Protocol:   corev1.ProtocolTCP,
-				TargetPort: intstr.IntOrString{IntVal: port},
+				TargetPort: intstr.IntOrString{StrVal: serverPortName, Type: intstr.String},
 			}},
 			Selector: labels,
 		},
@@ -59,7 +59,7 @@ func makeServiceName(cr *v1alpha1.EntandoPluginV2) string {
 	return "plugin-" + utility.TruncateString(cr.GetName(), 200) + "-service"
 }
 
-func (d *DeployManager) ApplyService(ctx context.Context, cr *v1alpha1.EntandoPluginV2, scheme *runtime.Scheme) error {
+func (d *ServiceManager) ApplyKubeService(ctx context.Context, cr *v1alpha1.EntandoPluginV2, scheme *runtime.Scheme) error {
 	baseService := d.buildService(cr, scheme)
 	service := &corev1.Service{}
 

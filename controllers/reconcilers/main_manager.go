@@ -15,6 +15,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+const labelKey = "app"
+const serverPortName = "server-port"
+
 type ReconcileManager struct {
 	Base      *common.BaseK8sStructure
 	Scheme    *runtime.Scheme
@@ -36,6 +39,7 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request, 
 
 	log := r.Base.Log
 	deployManager := NewDeployManager(r.Base, r.Condition)
+	serviceManager := NewServiceManager(r.Base, r.Condition)
 
 	if err := r.Condition.SetConditionPluginReadyUnknow(ctx, cr); err != nil {
 		log.Info("error on set plugin ready unknow")
@@ -60,13 +64,42 @@ func (r *ReconcileManager) MainReconcile(ctx context.Context, req ctrl.Request, 
 
 	if !ready {
 		if ready, err = deployManager.CheckDeploy(ctx, cr); err != nil {
-			log.Info("error ApplyDeploy reschedule reconcile", "error", err)
+			log.Info("error CheckDeploy reschedule reconcile", "error", err)
 			r.Condition.SetConditionPluginReadyFalse(ctx, cr)
 			return ctrl.Result{}, err
 		}
 		if !ready {
 			log.Info("Deploy not ready reschedule operator", "seconds", 10)
 			r.Recorder.Eventf(cr, "Warning", "NotReady", fmt.Sprintf("Plugin deployment not ready %s/%s", req.Namespace, req.Name))
+			r.Condition.SetConditionPluginReadyFalse(ctx, cr)
+			return ctrl.Result{Requeue: true, RequeueAfter: 10 * time.Second}, nil
+		}
+	}
+
+	// service done
+	applied = serviceManager.IsServiceApplied(ctx, cr)
+
+	if !applied {
+		if err := serviceManager.ApplyService(ctx, cr, r.Scheme); err != nil {
+			log.Info("error ApplyService reschedule reconcile", "error", err)
+			r.Condition.SetConditionPluginReadyFalse(ctx, cr)
+			return ctrl.Result{}, err
+		}
+	}
+	r.Recorder.Eventf(cr, "Normal", "Updated", fmt.Sprintf("Updated service %s/%s", req.Namespace, req.Name))
+
+	// service ready
+	ready = serviceManager.IsServiceReady(ctx, cr)
+
+	if !ready {
+		if ready, err = serviceManager.CheckService(ctx, cr); err != nil {
+			log.Info("error CheckService reschedule reconcile", "error", err)
+			r.Condition.SetConditionPluginReadyFalse(ctx, cr)
+			return ctrl.Result{}, err
+		}
+		if !ready {
+			log.Info("Service not ready reschedule operator", "seconds", 10)
+			r.Recorder.Eventf(cr, "Warning", "NotReady", fmt.Sprintf("Plugin serice not ready %s/%s", req.Namespace, req.Name))
 			r.Condition.SetConditionPluginReadyFalse(ctx, cr)
 			return ctrl.Result{Requeue: true, RequeueAfter: 10 * time.Second}, nil
 		}

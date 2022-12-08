@@ -11,6 +11,14 @@ import (
 )
 
 const (
+	CONDITION_SERVICE_APPLIED        = "ServiceApplied"
+	CONDITION_SERVICE_APPLIED_REASON = "ServiceIsApplied"
+	CONDITION_SERVICE_APPLIED_MSG    = "Your service was applied"
+
+	CONDITION_SERVICE_READY        = "ServiceReady"
+	CONDITION_SERVICE_READY_REASON = "ServiceIsReady"
+	CONDITION_SERVICE_READY_MSG    = "Your service is ready"
+
 	CONDITION_DEPLOY_APPLIED        = "DeployApplied"
 	CONDITION_DEPLOY_APPLIED_REASON = "DeployIsApplied"
 	CONDITION_DEPLOY_APPLIED_MSG    = "Your deploy was applied"
@@ -34,6 +42,42 @@ func NewConditionService(base *common.BaseK8sStructure) *ConditionService {
 	}
 }
 
+func (cs *ConditionService) IsServiceReady(ctx context.Context, cr *v1alpha1.EntandoPluginV2) bool {
+
+	condition, observedGeneration := cs.getConditionStatus(ctx, cr, CONDITION_SERVICE_READY)
+
+	return metav1.ConditionTrue == condition && observedGeneration == cr.Generation
+}
+
+func (cs *ConditionService) SetConditionServiceReady(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
+
+	cs.deleteCondition(ctx, cr, CONDITION_SERVICE_READY)
+	return utility.AppendCondition(ctx, cs.Base.Client, cr,
+		CONDITION_SERVICE_READY,
+		metav1.ConditionTrue,
+		CONDITION_SERVICE_READY_REASON,
+		CONDITION_SERVICE_READY_MSG,
+		cr.Generation)
+}
+
+func (cs *ConditionService) IsServiceApplied(ctx context.Context, cr *v1alpha1.EntandoPluginV2) bool {
+
+	condition, observedGeneration := cs.getConditionStatus(ctx, cr, CONDITION_SERVICE_APPLIED)
+
+	return metav1.ConditionTrue == condition && observedGeneration == cr.Generation
+}
+
+func (cs *ConditionService) SetConditionServiceApplied(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
+
+	cs.deleteCondition(ctx, cr, CONDITION_SERVICE_APPLIED)
+	return utility.AppendCondition(ctx, cs.Base.Client, cr,
+		CONDITION_SERVICE_APPLIED,
+		metav1.ConditionTrue,
+		CONDITION_SERVICE_APPLIED_REASON,
+		CONDITION_SERVICE_APPLIED_MSG,
+		cr.Generation)
+}
+
 func (cs *ConditionService) IsDeployReady(ctx context.Context, cr *v1alpha1.EntandoPluginV2) bool {
 
 	condition, observedGeneration := cs.getConditionStatus(ctx, cr, CONDITION_DEPLOY_READY)
@@ -41,11 +85,45 @@ func (cs *ConditionService) IsDeployReady(ctx context.Context, cr *v1alpha1.Enta
 	return metav1.ConditionTrue == condition && observedGeneration == cr.Generation
 }
 
+func (cs *ConditionService) SetConditionDeployReady(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
+
+	cs.deleteCondition(ctx, cr, CONDITION_DEPLOY_READY)
+	return utility.AppendCondition(ctx, cs.Base.Client, cr,
+		CONDITION_DEPLOY_READY,
+		metav1.ConditionTrue,
+		CONDITION_DEPLOY_READY_REASON,
+		CONDITION_DEPLOY_READY_MSG,
+		cr.Generation)
+}
+
 func (cs *ConditionService) IsDeployApplied(ctx context.Context, cr *v1alpha1.EntandoPluginV2) bool {
 
 	condition, observedGeneration := cs.getConditionStatus(ctx, cr, CONDITION_DEPLOY_APPLIED)
 
 	return metav1.ConditionTrue == condition && observedGeneration == cr.Generation
+}
+
+func (cs *ConditionService) SetConditionDeployApplied(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
+
+	cs.deleteCondition(ctx, cr, CONDITION_DEPLOY_APPLIED)
+	return utility.AppendCondition(ctx, cs.Base.Client, cr,
+		CONDITION_DEPLOY_APPLIED,
+		metav1.ConditionTrue,
+		CONDITION_DEPLOY_APPLIED_REASON,
+		CONDITION_DEPLOY_APPLIED_MSG,
+		cr.Generation)
+}
+
+func (cs *ConditionService) SetConditionPluginReadyTrue(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
+	return cs.setConditionPluginReady(ctx, cr, metav1.ConditionTrue)
+}
+
+func (cs *ConditionService) SetConditionPluginReadyUnknow(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
+	return cs.setConditionPluginReady(ctx, cr, metav1.ConditionUnknown)
+}
+
+func (cs *ConditionService) SetConditionPluginReadyFalse(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
+	return cs.setConditionPluginReady(ctx, cr, metav1.ConditionFalse)
 }
 
 func (cs *ConditionService) getConditionStatus(ctx context.Context, cr *v1alpha1.EntandoPluginV2, typeName string) (metav1.ConditionStatus, int64) {
@@ -62,18 +140,6 @@ func (cs *ConditionService) getConditionStatus(ctx context.Context, cr *v1alpha1
 	return output, observedGeneration
 }
 
-func (cs *ConditionService) SetConditionPluginReadyTrue(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
-	return cs.setConditionPluginReady(ctx, cr, metav1.ConditionTrue)
-}
-
-func (cs *ConditionService) SetConditionPluginReadyUnknow(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
-	return cs.setConditionPluginReady(ctx, cr, metav1.ConditionUnknown)
-}
-
-func (cs *ConditionService) SetConditionPluginReadyFalse(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
-	return cs.setConditionPluginReady(ctx, cr, metav1.ConditionFalse)
-}
-
 func (cs *ConditionService) setConditionPluginReady(ctx context.Context, cr *v1alpha1.EntandoPluginV2, status metav1.ConditionStatus) error {
 
 	cs.deleteCondition(ctx, cr, CONDITION_PLUGIN_READY)
@@ -82,28 +148,6 @@ func (cs *ConditionService) setConditionPluginReady(ctx context.Context, cr *v1a
 		status,
 		CONDITION_PLUGIN_READY_REASON,
 		CONDITION_PLUGIN_READY_MSG,
-		cr.Generation)
-}
-
-func (cs *ConditionService) SetConditionDeployReady(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
-
-	cs.deleteCondition(ctx, cr, CONDITION_DEPLOY_READY)
-	return utility.AppendCondition(ctx, cs.Base.Client, cr,
-		CONDITION_DEPLOY_READY,
-		metav1.ConditionTrue,
-		CONDITION_DEPLOY_READY_REASON,
-		CONDITION_DEPLOY_READY_MSG,
-		cr.Generation)
-}
-
-func (cs *ConditionService) SetConditionDeployApplied(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
-
-	cs.deleteCondition(ctx, cr, CONDITION_DEPLOY_APPLIED)
-	return utility.AppendCondition(ctx, cs.Base.Client, cr,
-		CONDITION_DEPLOY_APPLIED,
-		metav1.ConditionTrue,
-		CONDITION_DEPLOY_APPLIED_REASON,
-		CONDITION_DEPLOY_APPLIED_MSG,
 		cr.Generation)
 }
 

@@ -5,15 +5,12 @@ import (
 	"time"
 
 	"github.com/entgigi/plugin-operator.git/api/v1alpha1"
-	"github.com/entgigi/plugin-operator.git/utility"
 
 	"github.com/entgigi/plugin-operator.git/common"
 	"github.com/entgigi/plugin-operator.git/controllers/services"
 
 	"k8s.io/apimachinery/pkg/runtime"
 )
-
-const labelKey = "app"
 
 type DeployManager struct {
 	Base       *common.BaseK8sStructure
@@ -38,7 +35,7 @@ func (d *DeployManager) IsDeployReady(ctx context.Context, cr *v1alpha1.EntandoP
 }
 
 func (d *DeployManager) ApplyDeploy(ctx context.Context, cr *v1alpha1.EntandoPluginV2, scheme *runtime.Scheme) error {
-	applyError := d.ApplyDeployment(ctx, cr, scheme)
+	applyError := d.ApplyKubeDeployment(ctx, cr, scheme)
 	if applyError != nil {
 		return applyError
 	}
@@ -56,8 +53,4 @@ func (d *DeployManager) CheckDeploy(ctx context.Context, cr *v1alpha1.EntandoPlu
 
 	return ready, nil
 
-}
-
-func makeContainerName(cr *v1alpha1.EntandoPluginV2) string {
-	return "plugin-" + utility.TruncateString(cr.GetName(), 200) + "-container"
 }

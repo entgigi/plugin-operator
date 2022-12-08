@@ -62,6 +62,7 @@ func (d *DeployManager) buildDeployment(cr *v1alpha1.EntandoPluginV2, scheme *ru
 						Name:            containerName,
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: port,
+							Name:          serverPortName,
 						}},
 						Env: cr.Spec.EnvironmentVariables,
 						ReadinessProbe: &v1.Probe{
@@ -98,11 +99,15 @@ func (d *DeployManager) buildDeployment(cr *v1alpha1.EntandoPluginV2, scheme *ru
 	return deployment
 }
 
+func makeContainerName(cr *v1alpha1.EntandoPluginV2) string {
+	return "plugin-" + utility.TruncateString(cr.GetName(), 200) + "-container"
+}
+
 func makeDeploymentName(cr *v1alpha1.EntandoPluginV2) string {
 	return "plugin-" + utility.TruncateString(cr.GetName(), 200) + "-deployment"
 }
 
-func (d *DeployManager) ApplyDeployment(ctx context.Context, cr *v1alpha1.EntandoPluginV2, scheme *runtime.Scheme) error {
+func (d *DeployManager) ApplyKubeDeployment(ctx context.Context, cr *v1alpha1.EntandoPluginV2, scheme *runtime.Scheme) error {
 	baseDeployment := d.buildDeployment(cr, scheme)
 	deployment := &appsv1.Deployment{}
 
