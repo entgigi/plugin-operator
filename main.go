@@ -98,10 +98,6 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "EntandoPluginV2")
 		os.Exit(1)
 	}
-	if err = controllers.NewEntandoIngressV2Reconciler(mgr.GetClient(), ctrl.Log, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "EntandoIngressV2")
-		os.Exit(1)
-	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

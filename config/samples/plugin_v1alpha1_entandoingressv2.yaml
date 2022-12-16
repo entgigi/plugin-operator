@@ -1,6 +1,0 @@
-apiVersion: plugin.entando.org/v1alpha1
-kind: EntandoIngressV2
-metadata:
-  name: entandoingressv2-sample
-spec:
-  # TODO(user): Add fields here

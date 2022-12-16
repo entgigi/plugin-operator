@@ -46,7 +46,7 @@ func (d *DeployManager) ApplyDeploy(ctx context.Context, cr *v1alpha1.EntandoPlu
 func (d *DeployManager) CheckDeploy(ctx context.Context, cr *v1alpha1.EntandoPluginV2) (bool, error) {
 	time.Sleep(time.Second * 10)
 	ready := true
-
+	// check condition "Available" is "True"
 	if ready {
 		return ready, d.Conditions.SetConditionDeployReady(ctx, cr)
 	}

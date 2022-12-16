@@ -150,6 +150,8 @@ spec:
                 type: array
               HealthCheckPath:
                 type: string
+              IngressName:
+                type: string
               IngressPath:
                 type: string
               database:
@@ -165,6 +167,32 @@ spec:
                 default: 1
                 format: int32
                 type: integer
+              secrets:
+                items:
+                  properties:
+                    mountPath:
+                      type: string
+                    name:
+                      type: string
+                    prefix:
+                      type: string
+                    secretType:
+                      description: SecretType identifies the type of use for a secret
+                        inside a deployment
+                      type: string
+                  type: object
+                type: array
+              volumes:
+                items:
+                  properties:
+                    mountPath:
+                      type: string
+                    size:
+                      type: string
+                    storagClass:
+                      type: string
+                  type: object
+                type: array
             type: object
           status:
             description: EntandoPluginV2Status defines the observed state of EntandoPluginV2

@@ -21,17 +21,41 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+// SecretType identifies the type of use for a secret inside a deployment
+// +enum
+type SecretType string
+
+const (
+	// SecretTypeEnv means that the scheme used will be http://
+	SecretTypeEnv SecretType = "ENV"
+	// SecretTypeFile means that the scheme used will be https://
+	SecretTypeFile SecretType = "FILE"
+)
+
+type EntandoPluginV2Secret struct {
+	SecretType SecretType `json:"secretType,omitempty"`
+	Name       string     `json:"name,omitempty"`
+	Prefix     string     `json:"prefix,omitempty"`
+	MountPath  string     `json:"mountPath,omitempty"`
+}
+
+type EntandoPluginV2Volume struct {
+	StorageClass string `json:"storagClass,omitempty"`
+	Size         string `json:"size,omitempty"`
+	MountPath    string `json:"mountPath,omitempty"`
+}
 
 // EntandoPluginV2Spec defines the desired state of EntandoPluginV2
 type EntandoPluginV2Spec struct {
 	// +kubebuilder:default:="none"
-	Database             string          `json:"database,omitempty"`
-	EnvironmentVariables []corev1.EnvVar `json:"EnvironmentVariables,omitempty"`
-	HealthCheckPath      string          `json:"HealthCheckPath,omitempty"`
-	IngressPath          string          `json:"IngressPath,omitempty"`
-	Image                string          `json:"image,omitempty"`
+	Database             string                  `json:"database,omitempty"`
+	EnvironmentVariables []corev1.EnvVar         `json:"EnvironmentVariables,omitempty"`
+	Secrets              []EntandoPluginV2Secret `json:"secrets,omitempty"`
+	Volumes              []EntandoPluginV2Volume `json:"volumes,omitempty"`
+	HealthCheckPath      string                  `json:"HealthCheckPath,omitempty"`
+	IngressPath          string                  `json:"IngressPath,omitempty"`
+	IngressName          string                  `json:"IngressName,omitempty"`
+	Image                string                  `json:"image,omitempty"`
 	// +kubebuilder:default:=1
 	Replicas int32 `json:"replicas,omitempty"`
 	// +kubebuilder:default:=8080
