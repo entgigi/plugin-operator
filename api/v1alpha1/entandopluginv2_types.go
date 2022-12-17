@@ -26,9 +26,9 @@ import (
 type SecretType string
 
 const (
-	// SecretTypeEnv means that the scheme used will be http://
+	// SecretTypeEnv means that the secret will be used via env
 	SecretTypeEnv SecretType = "ENV"
-	// SecretTypeFile means that the scheme used will be https://
+	// SecretTypeFile means that the secret will be used via mounted file
 	SecretTypeFile SecretType = "FILE"
 )
 
@@ -49,7 +49,7 @@ type EntandoPluginV2Volume struct {
 type EntandoPluginV2Spec struct {
 	// +kubebuilder:default:="none"
 	Database             string                  `json:"database,omitempty"`
-	EnvironmentVariables []corev1.EnvVar         `json:"EnvironmentVariables,omitempty"`
+	EnvironmentVariables []corev1.EnvVar         `json:"environmentVariables,omitempty"`
 	Secrets              []EntandoPluginV2Secret `json:"secrets,omitempty"`
 	Volumes              []EntandoPluginV2Volume `json:"volumes,omitempty"`
 	HealthCheckPath      string                  `json:"healthCheckPath,omitempty"`

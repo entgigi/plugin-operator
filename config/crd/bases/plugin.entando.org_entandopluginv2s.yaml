@@ -40,7 +40,10 @@ spec:
           spec:
             description: EntandoPluginV2Spec defines the desired state of EntandoPluginV2
             properties:
-              EnvironmentVariables:
+              database:
+                default: none
+                type: string
+              environmentVariables:
                 items:
                   description: EnvVar represents an environment variable present in
                     a Container.
@@ -148,9 +151,6 @@ spec:
                   - name
                   type: object
                 type: array
-              database:
-                default: none
-                type: string
               healthCheckPath:
                 type: string
               image:
