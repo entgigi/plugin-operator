@@ -3,8 +3,8 @@ package reconcilers
 import (
 	"context"
 
-	"github.com/entgigi/plugin-operator.git/api/v1alpha1"
-	"github.com/entgigi/plugin-operator.git/utility"
+	"github.com/entgigi/plugin-operator/api/v1alpha1"
+	"github.com/entgigi/plugin-operator/utility"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -18,7 +18,7 @@ import (
 )
 
 func (d *ServiceManager) isServiceUpgrade(ctx context.Context, cr *v1alpha1.EntandoPluginV2, service *corev1.Service) (error, bool) {
-	err := d.Base.Client.Get(ctx, types.NamespacedName{Name: makeServiceName(cr), Namespace: cr.GetNamespace()}, service)
+	err := d.Base.Client.Get(ctx, types.NamespacedName{Name: MakeServiceName(cr), Namespace: cr.GetNamespace()}, service)
 	if errors.IsNotFound(err) {
 		return nil, false
 	}
@@ -26,7 +26,8 @@ func (d *ServiceManager) isServiceUpgrade(ctx context.Context, cr *v1alpha1.Enta
 }
 
 func (d *ServiceManager) buildService(cr *v1alpha1.EntandoPluginV2, scheme *runtime.Scheme) *corev1.Service {
-	serviceName := makeServiceName(cr)
+	serviceName := MakeServiceName(cr)
+	servicePort := MakeServicePort(cr)
 	labels := map[string]string{labelKey: makeContainerName(cr)}
 	port := int32(cr.Spec.Port)
 
@@ -42,7 +43,7 @@ func (d *ServiceManager) buildService(cr *v1alpha1.EntandoPluginV2, scheme *runt
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeClusterIP,
 			Ports: []corev1.ServicePort{{
-				Name:       serviceName + "-port",
+				Name:       servicePort,
 				Port:       port,
 				Protocol:   corev1.ProtocolTCP,
 				TargetPort: intstr.IntOrString{StrVal: serverPortName, Type: intstr.String},
@@ -55,8 +56,12 @@ func (d *ServiceManager) buildService(cr *v1alpha1.EntandoPluginV2, scheme *runt
 	return service
 }
 
-func makeServiceName(cr *v1alpha1.EntandoPluginV2) string {
+func MakeServiceName(cr *v1alpha1.EntandoPluginV2) string {
 	return "plugin-" + utility.TruncateString(cr.GetName(), 200) + "-service"
+}
+
+func MakeServicePort(cr *v1alpha1.EntandoPluginV2) string {
+	return utility.TruncateString(MakeServiceName(cr), 9) + "-port"
 }
 
 func (d *ServiceManager) ApplyKubeService(ctx context.Context, cr *v1alpha1.EntandoPluginV2, scheme *runtime.Scheme) error {

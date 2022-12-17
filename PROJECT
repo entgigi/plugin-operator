@@ -5,7 +5,7 @@ plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
 projectName: plugin-operator
-repo: github.com/entgigi/plugin-operator.git
+repo: github.com/entgigi/plugin-operator
 resources:
 - api:
     crdVersion: v1
@@ -14,6 +14,6 @@ resources:
   domain: entando.org
   group: plugin
   kind: EntandoPluginV2
-  path: github.com/entgigi/plugin-operator.git/api/v1alpha1
+  path: github.com/entgigi/plugin-operator/api/v1alpha1
   version: v1alpha1
 version: "3"

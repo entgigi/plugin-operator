@@ -52,9 +52,10 @@ type EntandoPluginV2Spec struct {
 	EnvironmentVariables []corev1.EnvVar         `json:"EnvironmentVariables,omitempty"`
 	Secrets              []EntandoPluginV2Secret `json:"secrets,omitempty"`
 	Volumes              []EntandoPluginV2Volume `json:"volumes,omitempty"`
-	HealthCheckPath      string                  `json:"HealthCheckPath,omitempty"`
-	IngressPath          string                  `json:"IngressPath,omitempty"`
-	IngressName          string                  `json:"IngressName,omitempty"`
+	HealthCheckPath      string                  `json:"healthCheckPath,omitempty"`
+	IngressName          string                  `json:"ingressName,omitempty"`
+	IngressHost          string                  `json:"ingressHost,omitempty"`
+	IngressPath          string                  `json:"ingressPath,omitempty"`
 	Image                string                  `json:"image,omitempty"`
 	// +kubebuilder:default:=1
 	Replicas int32 `json:"replicas,omitempty"`

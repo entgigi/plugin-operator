@@ -3,8 +3,8 @@ package reconcilers
 import (
 	"context"
 
-	"github.com/entgigi/plugin-operator.git/api/v1alpha1"
-	"github.com/entgigi/plugin-operator.git/utility"
+	"github.com/entgigi/plugin-operator/api/v1alpha1"
+	"github.com/entgigi/plugin-operator/utility"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"

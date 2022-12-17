@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/entgigi/plugin-operator.git/common"
+	"github.com/entgigi/plugin-operator/common"
 )
 
 // GetWatchNamespace returns the Namespace the operator should be watching for changes

@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/entgigi/plugin-operator.git/api/v1alpha1"
+	"github.com/entgigi/plugin-operator/api/v1alpha1"
 
-	"github.com/entgigi/plugin-operator.git/common"
-	"github.com/entgigi/plugin-operator.git/controllers/services"
+	"github.com/entgigi/plugin-operator/common"
+	"github.com/entgigi/plugin-operator/controllers/services"
 
 	"k8s.io/apimachinery/pkg/runtime"
 )

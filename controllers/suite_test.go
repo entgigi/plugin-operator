@@ -31,7 +31,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	pluginv1alpha1 "github.com/entgigi/plugin-operator.git/api/v1alpha1"
+	pluginv1alpha1 "github.com/entgigi/plugin-operator/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 

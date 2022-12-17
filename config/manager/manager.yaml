@@ -61,9 +61,9 @@ spec:
         env:
           - name: ENTANDO_K8S_OPERATOR_DEPLOYMENT_TYPE
             # OLM
-            value: "OLM"
+            #value: "OLM"
             # non OLM
-            #value: "Standard"
+            value: "Standard"
           - name: WATCH_NAMESPACE
             valueFrom:
               fieldRef:

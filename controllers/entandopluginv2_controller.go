@@ -19,10 +19,10 @@ package controllers
 import (
 	"context"
 
-	"github.com/entgigi/plugin-operator.git/api/v1alpha1"
-	pluginv1alpha1 "github.com/entgigi/plugin-operator.git/api/v1alpha1"
-	"github.com/entgigi/plugin-operator.git/common"
-	"github.com/entgigi/plugin-operator.git/controllers/reconcilers"
+	"github.com/entgigi/plugin-operator/api/v1alpha1"
+	pluginv1alpha1 "github.com/entgigi/plugin-operator/api/v1alpha1"
+	"github.com/entgigi/plugin-operator/common"
+	"github.com/entgigi/plugin-operator/controllers/reconcilers"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
@@ -47,9 +47,11 @@ type EntandoPluginV2Reconciler struct {
 //+kubebuilder:rbac:groups=plugin.entando.org,resources=entandopluginv2s,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=plugin.entando.org,resources=entandopluginv2s/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=plugin.entando.org,resources=entandopluginv2s/finalizers,verbs=update
+//+kubebuilder:rbac:groups=gateway.entando.org,resources=entandogatewayv2s,verbs=get;list;watch;create;update;patch;delete
 // Annotation for generating RBAC role for writing Events
 //+kubebuilder:rbac:groups="*",resources=events,verbs=create;patch
 //+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups="*",resources=services,verbs=get;list;watch;create;update;patch;delete
 
 func NewEntandoPluginV2Reconciler(client client.Client, log logr.Logger, scheme *runtime.Scheme, recorder record.EventRecorder) *EntandoPluginV2Reconciler {
 	return &EntandoPluginV2Reconciler{

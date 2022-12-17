@@ -32,9 +32,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	pluginv1alpha1 "github.com/entgigi/plugin-operator.git/api/v1alpha1"
-	"github.com/entgigi/plugin-operator.git/controllers"
-	"github.com/entgigi/plugin-operator.git/utility"
+	gatewayv1alpha1 "github.com/entgigi/gateway-operator/api/v1alpha1"
+	pluginv1alpha1 "github.com/entgigi/plugin-operator/api/v1alpha1"
+	"github.com/entgigi/plugin-operator/controllers"
+	"github.com/entgigi/plugin-operator/utility"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -48,6 +49,7 @@ func init() {
 
 	utilruntime.Must(pluginv1alpha1.AddToScheme(scheme))
 
+	utilruntime.Must(gatewayv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 

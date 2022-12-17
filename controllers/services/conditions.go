@@ -3,14 +3,22 @@ package services
 import (
 	"context"
 
-	"github.com/entgigi/plugin-operator.git/api/v1alpha1"
-	"github.com/entgigi/plugin-operator.git/common"
-	"github.com/entgigi/plugin-operator.git/utility"
+	"github.com/entgigi/plugin-operator/api/v1alpha1"
+	"github.com/entgigi/plugin-operator/common"
+	"github.com/entgigi/plugin-operator/utility"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 const (
+	CONDITION_GATEWAY_CR_APPLIED        = "GatewayCrApplied"
+	CONDITION_GATEWAY_CR_APPLIED_REASON = "GatewayCrIsApplied"
+	CONDITION_GATEWAY_CR_APPLIED_MSG    = "Your gateway cr was applied"
+
+	CONDITION_GATEWAY_CR_READY        = "GatewayCrReady"
+	CONDITION_GATEWAY_CR_READY_REASON = "GatewayCrIsReady"
+	CONDITION_GATEWAY_CR_READY_MSG    = "Your gateway cr is ready"
+
 	CONDITION_SERVICE_APPLIED        = "ServiceApplied"
 	CONDITION_SERVICE_APPLIED_REASON = "ServiceIsApplied"
 	CONDITION_SERVICE_APPLIED_MSG    = "Your service was applied"
@@ -40,6 +48,42 @@ func NewConditionService(base *common.BaseK8sStructure) *ConditionService {
 	return &ConditionService{
 		Base: base,
 	}
+}
+
+func (cs *ConditionService) IsGatewayCrReady(ctx context.Context, cr *v1alpha1.EntandoPluginV2) bool {
+
+	condition, observedGeneration := cs.getConditionStatus(ctx, cr, CONDITION_GATEWAY_CR_READY)
+
+	return metav1.ConditionTrue == condition && observedGeneration == cr.Generation
+}
+
+func (cs *ConditionService) SetConditionGatewayCrReady(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
+
+	cs.deleteCondition(ctx, cr, CONDITION_GATEWAY_CR_READY)
+	return utility.AppendCondition(ctx, cs.Base.Client, cr,
+		CONDITION_GATEWAY_CR_READY,
+		metav1.ConditionTrue,
+		CONDITION_GATEWAY_CR_READY_REASON,
+		CONDITION_GATEWAY_CR_READY_MSG,
+		cr.Generation)
+}
+
+func (cs *ConditionService) IsGatewayCrApplied(ctx context.Context, cr *v1alpha1.EntandoPluginV2) bool {
+
+	condition, observedGeneration := cs.getConditionStatus(ctx, cr, CONDITION_GATEWAY_CR_APPLIED)
+
+	return metav1.ConditionTrue == condition && observedGeneration == cr.Generation
+}
+
+func (cs *ConditionService) SetConditionGatewayCrApplied(ctx context.Context, cr *v1alpha1.EntandoPluginV2) error {
+
+	cs.deleteCondition(ctx, cr, CONDITION_GATEWAY_CR_APPLIED)
+	return utility.AppendCondition(ctx, cs.Base.Client, cr,
+		CONDITION_GATEWAY_CR_APPLIED,
+		metav1.ConditionTrue,
+		CONDITION_GATEWAY_CR_APPLIED_REASON,
+		CONDITION_GATEWAY_CR_APPLIED_MSG,
+		cr.Generation)
 }
 
 func (cs *ConditionService) IsServiceReady(ctx context.Context, cr *v1alpha1.EntandoPluginV2) bool {
