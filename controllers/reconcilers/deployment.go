@@ -8,7 +8,6 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -65,25 +64,25 @@ func (d *DeployManager) buildDeployment(cr *v1alpha1.EntandoPluginV2, scheme *ru
 							Name:          serverPortName,
 						}},
 						Env: cr.Spec.EnvironmentVariables,
-						ReadinessProbe: &v1.Probe{
-							ProbeHandler: v1.ProbeHandler{
-								HTTPGet: &v1.HTTPGetAction{Path: cr.Spec.HealthCheckPath, Port: intstr.IntOrString{
+						ReadinessProbe: &corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								HTTPGet: &corev1.HTTPGetAction{Path: cr.Spec.HealthCheckPath, Port: intstr.IntOrString{
 									IntVal: port,
 								}},
 							},
 							InitialDelaySeconds: 10,
 						},
-						LivenessProbe: &v1.Probe{
-							ProbeHandler: v1.ProbeHandler{
-								HTTPGet: &v1.HTTPGetAction{Path: cr.Spec.HealthCheckPath, Port: intstr.IntOrString{
+						LivenessProbe: &corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								HTTPGet: &corev1.HTTPGetAction{Path: cr.Spec.HealthCheckPath, Port: intstr.IntOrString{
 									IntVal: port,
 								}},
 							},
 							InitialDelaySeconds: 10,
 						},
-						StartupProbe: &v1.Probe{
-							ProbeHandler: v1.ProbeHandler{
-								HTTPGet: &v1.HTTPGetAction{Path: cr.Spec.HealthCheckPath, Port: intstr.IntOrString{
+						StartupProbe: &corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								HTTPGet: &corev1.HTTPGetAction{Path: cr.Spec.HealthCheckPath, Port: intstr.IntOrString{
 									IntVal: port,
 								}},
 							},
