@@ -57,11 +57,12 @@ func (d *ServiceManager) buildService(cr *v1alpha1.EntandoPluginV2, scheme *runt
 }
 
 func MakeServiceName(cr *v1alpha1.EntandoPluginV2) string {
-	return "plugin-" + utility.TruncateString(cr.GetName(), 200) + "-service"
+	return utility.TruncateString(cr.GetName(), 208) + "-service"
 }
 
 func MakeServicePort(cr *v1alpha1.EntandoPluginV2) string {
-	return utility.TruncateString(MakeServiceName(cr), 9) + "-port"
+	serviceName := MakeServiceName(cr)
+	return utility.TruncateString(utility.GenerateSha256(serviceName), 9) + "-port"
 }
 
 func (d *ServiceManager) ApplyKubeService(ctx context.Context, cr *v1alpha1.EntandoPluginV2, scheme *runtime.Scheme) error {

@@ -60,14 +60,13 @@ func (d *GatewayManager) buildCr(cr *v1alpha1.EntandoPluginV2, scheme *runtime.S
 }
 
 func makeCrName(cr *v1alpha1.EntandoPluginV2) string {
-	name := getIngressNameOrDefault(cr)
-	return "gateway-" + utility.TruncateString(name, 200)
+	return utility.TruncateString(cr.GetName(), 208) + "-gateway"
 }
 
 func getIngressNameOrDefault(cr *v1alpha1.EntandoPluginV2) string {
 	var name string = cr.Spec.IngressName
 	if len(name) <= 0 {
-		name = cr.GetName()
+		name = utility.TruncateString(cr.GetName(), 208) + "-ingress"
 	}
 	return name
 }

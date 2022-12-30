@@ -99,11 +99,11 @@ func (d *DeployManager) buildDeployment(cr *v1alpha1.EntandoPluginV2, scheme *ru
 }
 
 func makeContainerName(cr *v1alpha1.EntandoPluginV2) string {
-	return "plugin-" + utility.TruncateString(cr.GetName(), 200) + "-container"
+	return utility.TruncateString(cr.GetName(), 208) + "-container"
 }
 
 func makeDeploymentName(cr *v1alpha1.EntandoPluginV2) string {
-	return "plugin-" + utility.TruncateString(cr.GetName(), 200) + "-deployment"
+	return utility.TruncateString(cr.GetName(), 208) + "-deployment"
 }
 
 func (d *DeployManager) ApplyKubeDeployment(ctx context.Context, cr *v1alpha1.EntandoPluginV2, scheme *runtime.Scheme) error {

@@ -1,6 +1,7 @@
 package utility
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"os"
 
@@ -35,4 +36,8 @@ func TruncateString(s string, max int) string {
 		return s
 	}
 	return s[:max]
+}
+
+func GenerateSha256(s string) string {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(s)))
 }
